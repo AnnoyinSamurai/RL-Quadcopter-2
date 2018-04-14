@@ -3,6 +3,8 @@ from task import Task
 from keras import layers, models, optimizers
 from keras import backend as K
 import copy
+import random
+from collections import namedtuple, deque
 
 class DDPG():
     """Reinforcement Learning agent that learns using DDPG."""
@@ -39,15 +41,23 @@ class DDPG():
         # Algorithm parameters
         self.gamma = 0.99  # discount factor
         self.tau = 0.01  # for soft update of target parameters
-
+        self.score = 0
+        self.best_score = -np.inf
+        self.total_reward = 0.0
+        self.reset_episode()
+        
+        
     def reset_episode(self):
         self.noise.reset()
+        self.count = 0
         state = self.task.reset()
         self.last_state = state
         return state
 
     def step(self, action, reward, next_state, done):
          # Save experience / reward
+        self.total_reward += reward
+        self.count += 1
         self.memory.add(self.last_state, action, reward, next_state, done)
 
         # Learn, if enough samples are available in memory
@@ -88,7 +98,10 @@ class DDPG():
 
         # Soft-update target models
         self.soft_update(self.critic_local.model, self.critic_target.model)
-        self.soft_update(self.actor_local.model, self.actor_target.model)   
+        self.soft_update(self.actor_local.model, self.actor_target.model) 
+        self.score = self.total_reward / float(self.count) if self.count else 0.0
+        if self.score > self.best_score:
+            self.best_score = self.score
 
     def soft_update(self, local_model, target_model):
         """Soft update model parameters."""
@@ -236,3 +249,30 @@ class OUNoise:
         dx = self.theta * (self.mu - x) + self.sigma * np.random.randn(len(x))
         self.state = x + dx
         return self.state
+
+class ReplayBuffer:
+    """Fixed-size buffer to store experience tuples."""
+
+    def __init__(self, buffer_size, batch_size):
+        """Initialize a ReplayBuffer object.
+        Params
+        ======
+            buffer_size: maximum size of buffer
+            batch_size: size of each training batch
+        """
+        self.memory = deque(maxlen=buffer_size)  # internal memory (deque)
+        self.batch_size = batch_size
+        self.experience = namedtuple("Experience", field_names=["state", "action", "reward", "next_state", "done"])
+
+    def add(self, state, action, reward, next_state, done):
+        """Add a new experience to memory."""
+        e = self.experience(state, action, reward, next_state, done)
+        self.memory.append(e)
+
+    def sample(self, batch_size=64):
+        """Randomly sample a batch of experiences from memory."""
+        return random.sample(self.memory, k=self.batch_size)
+
+    def __len__(self):
+        """Return the current size of internal memory."""
+        return len(self.memory)
