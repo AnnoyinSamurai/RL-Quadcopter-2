@@ -43,7 +43,6 @@ class DDPG():
         self.tau = 0.01  # for soft update of target parameters
         self.score = 0
         self.best_score = -np.inf
-        self.total_reward = 0.0        
         
     def reset_episode(self):
         self.noise.reset()

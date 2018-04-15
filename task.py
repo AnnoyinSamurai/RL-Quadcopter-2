@@ -19,8 +19,8 @@ class Task():
         self.action_repeat = 3
 
         self.state_size = self.action_repeat * 6
-        self.action_low = 430
-        self.action_high = 440
+        self.action_low = 410
+        self.action_high = 430
         self.action_size = 4
 
         # Goal
@@ -28,8 +28,8 @@ class Task():
 
     def get_reward(self):
         """Uses current pose of sim to return reward."""
-        reward = 1.-.5*(abs(self.sim.pose[2] - self.target_pos[2]))
-        return reward
+        # hover_pos = numpy.linalg.norm(self.sim.pose[2] - self.target_pos[2])
+        return 1 - .0005*(abs(self.sim.pose[2] - self.target_pos[2]))
 
     def step(self, rotor_speeds):
         """Uses action to obtain next state, reward, done."""
