@@ -26,15 +26,18 @@ class Task():
         # Goal
         self.target_pos = target_pos if target_pos is not None else np.array([0., 0., 10.]) 
 
-    def get_reward(self):
+    def get_reward(self, done):
         """Uses current pose of sim to return reward."""
         down_penalty = 0
+        run_time_penalty = 0
         if self.sim.pose[2] < 0.5:
-            down_penalty = -1
+            down_penalty = -2
+        if done and self.sim.time < self.sim.runtime:
+            run_time_penalty = -2
         vert_pos = np.linalg.norm(self.sim.pose[2] - self.target_pos[2])
         rot_pos = abs(self.sim.pose[3:]).sum()
         x_y_pos = np.linalg.norm(self.sim.pose[:2] - self.target_pos[:2])
-        return 1 - .005*(vert_pos) - .002*(x_y_pos) - .002*(rot_pos) + down_penalty
+        return 1 - .005*(vert_pos) - .002*(x_y_pos) - .002*(rot_pos) + down_penalty + run_time_penalty
 
     def step(self, rotor_speeds):
         """Uses action to obtain next state, reward, done."""
@@ -42,7 +45,7 @@ class Task():
         pose_all = []
         for _ in range(self.action_repeat):
             done = self.sim.next_timestep(rotor_speeds) # update the sim pose and velocities
-            reward += self.get_reward() 
+            reward += self.get_reward(done) 
             pose_all.append(self.sim.pose)
 #         if self.sim.pose[2] > 10.0:
 #                 done = True
