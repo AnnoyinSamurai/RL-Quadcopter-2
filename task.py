@@ -31,7 +31,9 @@ class Task():
         hover_pos = np.linalg.norm(self.sim.pose[2] - self.target_pos[2])
         if hover_pos < 1:
             return 1
-        return 1 - .05*(hover_pos)*(hover_pos)
+        if hover_pos > 9:
+            return -5
+        return 1 - .005*(hover_pos)
 
     def step(self, rotor_speeds):
         """Uses action to obtain next state, reward, done."""
@@ -41,7 +43,6 @@ class Task():
             done = self.sim.next_timestep(rotor_speeds) # update the sim pose and velocities
             reward += self.get_reward() 
             pose_all.append(self.sim.pose)
-        reward = np.clip(reward, -1.0, 1.0)
         next_state = np.concatenate(pose_all)
         return next_state, reward, done
 
