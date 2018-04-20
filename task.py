@@ -30,7 +30,7 @@ class Task():
         """Uses current pose of sim to return reward."""
         down_penalty = 0
         if self.sim.pose[2] < 0.5:
-            down_penalty = -1
+            down_penalty = -10
         vert_pos = np.linalg.norm(self.sim.pose[2] - self.target_pos[2])
         rot_pos = abs(self.sim.pose[3:]).sum()
         x_y_pos = np.linalg.norm(self.sim.pose[:2] - self.target_pos[:2])
