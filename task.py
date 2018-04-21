@@ -30,14 +30,15 @@ class Task():
         """Uses current pose of sim to return reward."""
         down_penalty = 0
         run_time_penalty = 0
+        vertical_coeff = 0.05
         if self.sim.pose[2] < 0.5:
-            down_penalty = -2
-        if done and self.sim.time < self.sim.runtime:
-            run_time_penalty = -2
+            down_penalty = -10
         vert_pos = np.linalg.norm(self.sim.pose[2] - self.target_pos[2])
+        if vert_pos < 2:
+            vertical_coeff = 0.01
         rot_pos = abs(self.sim.pose[3:]).sum()
         x_y_pos = np.linalg.norm(self.sim.pose[:2] - self.target_pos[:2])
-        return 1 - .005*(vert_pos) - .002*(x_y_pos) - .002*(rot_pos) + down_penalty + run_time_penalty
+        return 1 - .005*(vert_pos) - .001*(x_y_pos) - .001*(rot_pos) + down_penalty
 
     def step(self, rotor_speeds):
         """Uses action to obtain next state, reward, done."""
